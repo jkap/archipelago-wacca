@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+@plugin 'daisyui';
+
+@theme {
+	--font-sans: 'Atkinson Hyperlegible Next Variable', sans-serif;
+
+	--color-diff-normal: #009de6;
+	--color-diff-hard: #fed131;
+	--color-diff-expert: #fc06a3;
+	--color-diff-inferno: #4a004f;
+}
