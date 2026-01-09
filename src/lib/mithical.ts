@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import { songsById } from './data/waccaSongs';
 import { derived, get, writable } from 'svelte/store';
+import { isDefined } from './utils';
 
 export const WaccaGrade = z.enum({
 	Master: 13,
@@ -15,7 +16,7 @@ export const WaccaGrade = z.enum({
 	C: 4,
 	D: 3,
 	F: 2,
-	G: 1,
+	G: 1, // not what it's actually called. i don't know what it's actually called.
 	NO_PLAY: 0
 });
 export type WaccaGrade = z.infer<typeof WaccaGrade>;
@@ -64,8 +65,12 @@ const CACHE = writable<Awaited<ReturnType<typeof fetchUserResult>>>();
 export async function fetchUserResult(cardNumber: string) {
 	const url = `https://mithical-backend.guegan.de/wacca/user/${cardNumber}/400`;
 
-	const resp = await fetch(url).then((resp) => resp.json());
-	const parsedResponse = WaccaUserResponse.parse(resp);
+	const resp = await fetch(url);
+	if (!resp.ok) {
+		throw new Error(`Failed to fetch from mithical: ${resp.status}`);
+	}
+
+	const parsedResponse = WaccaUserResponse.parse(await resp.json());
 
 	CACHE.set(parsedResponse);
 
@@ -73,17 +78,25 @@ export async function fetchUserResult(cardNumber: string) {
 }
 
 export function getMostRecentSong() {
-	return get(collectedPlaylog)[0];
+	const mostRecent = get(collectedPlaylog)[0];
+	if (!mostRecent) throw 'Run a fetch first';
+	return mostRecent;
 }
 
 export const collectedPlaylog = derived(CACHE, (cache) => {
 	if (!cache) return [];
 
 	const results = cache.playlog.slice(0, 10);
-	const collected = results.map((result) => ({
-		result,
-		song: songsById[result.info.music_id]
-	}));
+	const collected = results
+		.map((result) => {
+			const song = songsById[result.info.music_id];
+			if (!song) return;
+			return {
+				result,
+				song
+			};
+		})
+		.filter(isDefined);
 
 	return collected;
 });

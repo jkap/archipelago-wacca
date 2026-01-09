@@ -1,12 +1,11 @@
-import { Client, Item, type MessageLog, type MessageNode } from 'archipelago.js';
-import { PROGRESSION_ID } from './consts';
-import { fetchUserResult, getMostRecentSong, WaccaGrade } from './mithical';
-import { isoDatetimeToDate } from './utils';
-import { writable, readable, get, derived } from 'svelte/store';
-import { SvelteDate } from 'svelte/reactivity';
-import { songsByEffectiveName, songsById, type waccaSongs } from './data/waccaSongs';
+import { Item } from 'archipelago.js';
+import { derived, get } from 'svelte/store';
 import { checkedLocations, client, items } from './archipelago';
+import { PROGRESSION_ID } from './consts';
+import { songsByEffectiveName, songsById, type waccaSongs } from './data/waccaSongs';
 import GameState from './game-state.svelte';
+import { fetchUserResult, getMostRecentSong, WaccaGrade } from './mithical';
+import { isDefined, isoDatetimeToDate } from './utils';
 
 type WaccaSlotData = {
 	victoryLocation: string;
@@ -50,6 +49,8 @@ export const richItems = derived([items, checkedLocations], ([$items, $checkedLo
 		}
 
 		const songData = songsById[item.id];
+		if (!songData) throw `Couldn't find song data for ID ${item.id}`;
+
 		const effectiveTitle = songData.titleEnglish ?? songData.title;
 		const firstLocationName = `${effectiveTitle}-0`;
 		const firstLocationId = locationTable[firstLocationName];
@@ -118,7 +119,7 @@ export async function clearCheck(cardNumber?: string) {
 	const locationTable = client.package.findPackage('WACCA')?.locationTable;
 	if (!locationTable) throw "Couldn't find location table for WACCA";
 
-	const locationIds = locationNames.map((name) => locationTable[name]);
+	const locationIds = locationNames.map((name) => locationTable[name]).filter(isDefined);
 	client.check(...locationIds);
 }
 
