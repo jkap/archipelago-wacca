@@ -5,6 +5,7 @@
 	import CheckManager from '../components/check-manager.svelte';
 	import Playlog from '../components/playlog.svelte';
 	import ProgressionStatus from '../components/progression-status.svelte';
+	import WakelockManager from '../components/wakelock-manager.svelte';
 
 	let connectionUrl = $state<string>('');
 	let slotName = $state<string>('');
@@ -17,6 +18,7 @@
 
 <div class="prose">
 	<h2>connection</h2>
+	<WakelockManager />
 	<form onsubmit={() => connectAndSetup()}>
 		<input class="input" type="text" bind:value={connectionUrl} required placeholder="url" />
 		<input class="input" type="text" bind:value={slotName} required placeholder="slot" />
